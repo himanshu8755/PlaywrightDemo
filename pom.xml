@@ -58,6 +58,7 @@
                     </suiteXmlFiles>
                     <systemPropertyVariables>
                         <allure.results.directory>${project.build.directory}/allure-results</allure.results.directory>
+                        <playwright.version>${playwright.version}</playwright.version>
                     </systemPropertyVariables>
                 </configuration>
             </plugin>
