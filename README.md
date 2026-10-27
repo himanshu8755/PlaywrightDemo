@@ -7,7 +7,7 @@ This beginner project uses the public SauceDemo training site to demonstrate suc
 You need Java 17+, Maven, and network access. Install Playwright's Chromium browser once:
 
 ```bash
-mvn exec:java -Dexec.mainClass=com.microsoft.playwright.CLI -Dexec.args="install chromium"
+mvn exec:java -Dexec.classpathScope=test -Dexec.mainClass=com.microsoft.playwright.CLI -Dexec.args="install chromium"
 ```
 
 Then run the suite:
