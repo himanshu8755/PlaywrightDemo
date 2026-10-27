@@ -1,0 +1,28 @@
+name: Playwright tests
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    env:
+      HEADLESS: "true"
+      SLOW_MO: "0"
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Set up Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "17"
+          cache: maven
+
+      - name: Install Playwright Chromium
+        run: mvn -B -Dexec.mainClass=com.microsoft.playwright.CLI -Dexec.args="install --with-deps chromium" exec:java
+
+      - name: Run tests
+        run: mvn -B test

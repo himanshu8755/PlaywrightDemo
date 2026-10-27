@@ -25,7 +25,7 @@ mvn test
 | Site URL | `-DbaseUrl=...` | `BASE_URL` | `https://www.saucedemo.com` |
 | Username | `-Dusername=...` | `SAUCEDEMO_USERNAME` | `standard_user` |
 | Password | `-Dpassword=...` | `SAUCEDEMO_PASSWORD` | `secret_sauce` |
-| Headless mode | `-Dheadless=true` | `HEADLESS=true` | `false` (visible browser) |
+| Headless mode | `-Dheadless=true` | `HEADLESS=true` | `false` (visible, maximized browser) |
 | Slow motion | `-DslowMo=250` | `SLOW_MO=250` | `500` milliseconds |
 
 For example, use environment variables for a private test environment:
@@ -38,6 +38,8 @@ mvn test
 ```
 
 Only the public training-site credentials are defaults. Keep private credentials in environment variables or a secret manager; do not commit them. `slowMo` is a Playwright launch option that pauses after browser operations so you can watch them; set it to `0` for normal-speed execution.
+
+Local runs default to a visible, maximized Chromium window. Set `HEADLESS=true` (or `-Dheadless=true`) to run without a visible browser. The GitHub Actions workflow uses headless mode and installs Chromium before running the Maven test suite.
 
 ## Learn the code
 

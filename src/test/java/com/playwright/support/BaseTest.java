@@ -5,6 +5,7 @@ import com.microsoft.playwright.BrowserContext;
 import com.microsoft.playwright.BrowserType;
 import com.microsoft.playwright.Page;
 import com.microsoft.playwright.Playwright;
+import com.microsoft.playwright.options.ViewportSize;
 import com.playwright.config.TestConfig;
 import org.testng.annotations.AfterMethod;
 import org.testng.annotations.BeforeMethod;
@@ -13,6 +14,7 @@ import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.List;
 import java.util.Properties;
 import java.util.logging.Logger;
 
@@ -27,10 +29,19 @@ public abstract class BaseTest {
     @BeforeMethod
     public void initializeBrowser() {
         playwright = Playwright.create();
-        browser = playwright.chromium().launch(new BrowserType.LaunchOptions()
-            .setHeadless(TestConfig.headless())
-            .setSlowMo(TestConfig.slowMo()));
-        context = browser.newContext();
+        boolean headless = TestConfig.headless();
+        BrowserType.LaunchOptions launchOptions = new BrowserType.LaunchOptions()
+            .setHeadless(headless)
+            .setSlowMo(TestConfig.slowMo());
+        if (!headless) {
+            launchOptions.setArgs(List.of("--start-maximized"));
+        }
+        browser = playwright.chromium().launch(launchOptions);
+        Browser.NewContextOptions contextOptions = new Browser.NewContextOptions();
+        if (!headless) {
+            contextOptions.setViewportSize((ViewportSize) null);
+        }
+        context = browser.newContext(contextOptions);
         page = context.newPage();
         writeAllureEnvironment();
         LOGGER.info("Browser initialized: Chromium " + browser.version() + " at " + TestConfig.baseUrl());

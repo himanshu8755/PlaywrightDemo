@@ -9,4 +9,8 @@ allure-report/
 .env.*
 !.env.example
 *.log
-.github
+!.github/
+.github/*
+!.github/workflows/
+.github/workflows/*
+!.github/workflows/ci.yml
