@@ -17,7 +17,7 @@ public final class TestConfig {
     }
 
     public static boolean headless() {
-        return Boolean.parseBoolean(setting("headless", "HEADLESS", "false"));
+        return Boolean.parseBoolean(setting("headless", "HEADLESS", "False"));
     }
 
     public static double slowMo() {

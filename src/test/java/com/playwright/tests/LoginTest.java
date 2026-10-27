@@ -5,6 +5,7 @@ import com.playwright.config.TestConfig;
 import com.playwright.pages.LoginPage;
 import com.playwright.support.BaseTest;
 import io.qameta.allure.Allure;
+import io.qameta.allure.AttachmentOptions;
 import io.qameta.allure.Description;
 import io.qameta.allure.Story;
 import org.testng.Assert;
@@ -69,6 +70,7 @@ public class LoginTest extends BaseTest {
 
     private void attachScreenshot(String name) {
         byte[] screenshot = page.screenshot(new Page.ScreenshotOptions().setFullPage(true));
-        Allure.addAttachment(name, "image/png", new ByteArrayInputStream(screenshot), ".png");
+        Allure.attachment(name, "image/png", new ByteArrayInputStream(screenshot),
+            AttachmentOptions.withFileExtension(".png"));
     }
 }
