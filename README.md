@@ -71,7 +71,7 @@ Then open `src/test/java/com/playwright/tests/LoginTest.java`. It extends `BaseT
 
 `LoginPage` is a **Page Object**. It stores the page and provides actions that make sense to a user. The test stays focused on what should happen, while the page object knows how to interact with the login form. `BaseTest` keeps browser lifecycle code out of the test scenarios and can be reused as the project grows.
 
-The login actions and cart actions are wrapped in named Allure steps. Each UI scenario attaches a screenshot of its resulting page. The run also writes `environment.properties` into `target/allure-results`, which adds the base URL, browser and version, headless setting, Java version, and operating system to the Allure report. `java.util.logging.Logger` writes end-to-end progress messages to the test output; credential values are never logged or added to the report.
+The login actions and cart actions are wrapped in named Allure steps. Each UI scenario attaches a screenshot of its resulting page. The run also writes `environment.properties` into `target/allure-results`, which adds the base URL, browser and version, headless setting, Java version, and operating system to the Allure report. `java.util.logging.Logger` writes end-to-end progress messages to the test output and to `target/test-logs/tests.log`; the file is reset at the start of each test run. Credential values are never logged or added to the report.
 
 After running the suite, view the report with the Allure CLI:
 

@@ -14,16 +14,38 @@ import org.testng.annotations.Optional;
 import org.testng.annotations.Parameters;
 
 import java.io.IOException;
+import java.util.logging.FileHandler;
+import java.util.logging.Level;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.List;
 import java.util.Properties;
 import java.util.logging.Logger;
+import java.util.logging.SimpleFormatter;
 
 /** Shared Playwright lifecycle for UI tests. */
 public abstract class BaseTest {
+    private static final Logger ROOT_LOGGER = Logger.getLogger("");
     private static final Logger LOGGER = Logger.getLogger(BaseTest.class.getName());
+
+    static {
+        configureFileLogging();
+    }
+
+    private static void configureFileLogging() {
+        try {
+            Path logDirectory = Path.of("target", "test-logs");
+            Files.createDirectories(logDirectory);
+            FileHandler fileHandler = new FileHandler(logDirectory.resolve("tests.log").toString(), false);
+            fileHandler.setLevel(Level.INFO);
+            fileHandler.setFormatter(new SimpleFormatter());
+            ROOT_LOGGER.addHandler(fileHandler);
+            ROOT_LOGGER.setLevel(Level.INFO);
+        } catch (IOException error) {
+            throw new ExceptionInInitializerError(error);
+        }
+    }
     protected Playwright playwright;
     protected Browser browser;
     protected BrowserContext context;

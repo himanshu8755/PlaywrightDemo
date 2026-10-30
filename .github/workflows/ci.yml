@@ -25,4 +25,48 @@ jobs:
         run: mvn -B -Dexec.classpathScope=test -Dexec.mainClass=com.microsoft.playwright.CLI -Dexec.args="install --with-deps chromium firefox webkit" exec:java
 
       - name: Run cross-browser and mobile suite
+        id: tests
+        continue-on-error: true
         run: mvn -B test -Dtestng.suite=testng-cross-browser.xml
+
+      - name: Generate Allure report
+        id: report
+        if: always()
+        run: mvn -B allure:report
+
+      - name: Package Allure report
+        if: always() && steps.report.outcome == 'success'
+        run: zip -qr allure-report.zip target/site/allure-maven
+
+      - name: Upload Allure report artifact
+        if: always() && steps.report.outcome == 'success'
+        uses: actions/upload-artifact@v4
+        with:
+          name: allure-report
+          path: allure-report.zip
+          retention-days: 14
+
+      - name: Email Allure report
+        if: always() && github.event_name == 'push' && steps.report.outcome == 'success'
+        uses: dawidd6/action-send-mail@v4
+        with:
+          server_address: smtp.gmail.com
+          server_port: 465
+          secure: true
+          username: ${{ secrets.MAIL_USERNAME }}
+          password: ${{ secrets.MAIL_PASSWORD }}
+          from: ${{ secrets.MAIL_USERNAME }}
+          to: himanshu.tiwari.me@gmail.com
+          subject: "Playwright test report: ${{ steps.tests.outcome }} (${{ github.ref_name }})"
+          body: |
+            The Playwright test run has finished.
+            Repository: ${{ github.repository }}
+            Branch: ${{ github.ref_name }}
+            Commit: ${{ github.sha }}
+            Test step result: ${{ steps.tests.outcome }}
+            The Allure HTML report is attached as a ZIP file. It is also available in this run's artifacts.
+          attachments: allure-report.zip
+
+      - name: Fail workflow if tests failed
+        if: always() && steps.tests.outcome == 'failure'
+        run: exit 1
