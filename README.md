@@ -41,6 +41,19 @@ Only the public training-site credentials are defaults. Keep private credentials
 
 Local runs default to a visible, maximized Chromium window. Set `HEADLESS=true` (or `-Dheadless=true`) to run without a visible browser. The GitHub Actions workflow uses headless mode and installs Chromium before running the Maven test suite.
 
+## Cross-browser and mobile runs
+
+The regular `mvn test` command remains a Chromium desktop run. To run the UI flows in parallel across Chromium, Firefox, WebKit, and a Chromium mobile viewport, install all three Playwright browsers and select the expanded TestNG suite:
+
+```bash
+mvn exec:java -Dexec.classpathScope=test -Dexec.mainClass=com.microsoft.playwright.CLI -Dexec.args="install chromium firefox webkit"
+HEADLESS=true SLOW_MO=0 mvn test -Dtestng.suite=testng-cross-browser.xml
+```
+
+`testng-cross-browser.xml` runs the desktop browser groups and a Chromium run configured at **390 × 844** with mobile and touch emulation. TestNG runs those four groups concurrently. The mobile group also checks the inventory, menu, cart, and checkout for horizontal overflow and confirms the navigation menu and checkout fields are visible. This is browser emulation at a mobile viewport; it does not replace checks on physical phones.
+
+The browser and viewport appear as per-test parameters in Allure. To add another configuration, add a TestNG `<test>` entry with `browser` (`chromium`, `firefox`, or `webkit`) and `viewport` (`desktop` or `mobile`) parameters. Mobile emulation is currently configured for Chromium.
+
 ## Learn the code
 
 Open `src/test/java/com/playwright/support/BaseTest.java` first to learn browser setup:

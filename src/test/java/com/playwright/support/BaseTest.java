@@ -7,8 +7,11 @@ import com.microsoft.playwright.Page;
 import com.microsoft.playwright.Playwright;
 import com.microsoft.playwright.options.ViewportSize;
 import com.playwright.config.TestConfig;
+import io.qameta.allure.Allure;
 import org.testng.annotations.AfterMethod;
 import org.testng.annotations.BeforeMethod;
+import org.testng.annotations.Optional;
+import org.testng.annotations.Parameters;
 
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
@@ -25,34 +28,62 @@ public abstract class BaseTest {
     protected Browser browser;
     protected BrowserContext context;
     protected Page page;
+    private String browserName;
+    private String viewportName;
 
     @BeforeMethod
-    public void initializeBrowser() {
+    @Parameters({"browser", "viewport"})
+    public void initializeBrowser(@Optional("chromium") String browserName,
+                                  @Optional("desktop") String viewportName) {
+        this.browserName = browserName.toLowerCase();
+        this.viewportName = viewportName.toLowerCase();
         playwright = Playwright.create();
         boolean headless = TestConfig.headless();
         BrowserType.LaunchOptions launchOptions = new BrowserType.LaunchOptions()
             .setHeadless(headless)
             .setSlowMo(TestConfig.slowMo());
-        if (!headless) {
+        if (!headless && this.browserName.equals("chromium")) {
             launchOptions.setArgs(List.of("--start-maximized"));
         }
-        browser = playwright.chromium().launch(launchOptions);
+
+        browser = switch (this.browserName) {
+            case "chromium", "chrome" -> playwright.chromium().launch(launchOptions);
+            case "firefox" -> playwright.firefox().launch(launchOptions);
+            case "webkit", "safari" -> playwright.webkit().launch(launchOptions);
+            default -> throw new IllegalArgumentException("Unsupported browser: " + browserName
+                + ". Choose chromium, firefox, or webkit.");
+        };
+
         Browser.NewContextOptions contextOptions = new Browser.NewContextOptions();
-        if (!headless) {
+        if (this.viewportName.equals("mobile")) {
+            contextOptions.setViewportSize(new ViewportSize(390, 844))
+                .setIsMobile(true)
+                .setHasTouch(true)
+                .setDeviceScaleFactor(3.0);
+        } else if (!this.viewportName.equals("desktop")) {
+            throw new IllegalArgumentException("Unsupported viewport: " + viewportName
+                + ". Choose desktop or mobile.");
+        } else if (!headless && this.browserName.equals("chromium")) {
             contextOptions.setViewportSize((ViewportSize) null);
         }
         context = browser.newContext(contextOptions);
         page = context.newPage();
-        writeAllureEnvironment();
-        LOGGER.info("Browser initialized: Chromium " + browser.version() + " at " + TestConfig.baseUrl());
+        Allure.parameter("Browser", this.browserName);
+        Allure.parameter("Viewport", this.viewportName);
+        writeAllureEnvironment(this.browserName, this.viewportName, browser.version());
+        LOGGER.info("Browser initialized: " + this.browserName + " " + browser.version()
+            + " with " + this.viewportName + " viewport at " + TestConfig.baseUrl());
     }
 
-    private void writeAllureEnvironment() {
+    private static synchronized void writeAllureEnvironment(String browserName, String viewportName,
+                                                            String browserVersion) {
         String resultsDirectory = System.getProperty("allure.results.directory", "target/allure-results");
         Properties environment = new Properties();
         environment.setProperty("Base URL", TestConfig.baseUrl());
-        environment.setProperty("Browser", "Chromium");
-        environment.setProperty("Browser Version", browser.version());
+        environment.setProperty("Browser", browserName);
+        environment.setProperty("Browser Version", browserVersion);
+        environment.setProperty("Viewport", viewportName);
+        environment.setProperty("Slow Motion (ms)", String.valueOf(TestConfig.slowMo()));
         environment.setProperty("Playwright Version", System.getProperty("playwright.version", "unknown"));
         environment.setProperty("Java Version", System.getProperty("java.version", "unknown"));
         environment.setProperty("Operating System", System.getProperty("os.name", "unknown")

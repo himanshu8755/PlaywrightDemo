@@ -9,7 +9,7 @@ jobs:
     runs-on: ubuntu-latest
     env:
       HEADLESS: "true"
-      SLOW_MO: "100"
+      SLOW_MO: "0"
     steps:
       - name: Check out repository
         uses: actions/checkout@v7
@@ -21,8 +21,8 @@ jobs:
           java-version: "17"
           cache: maven
 
-      - name: Install Playwright Chromium
-        run: mvn -B -Dexec.classpathScope=test -Dexec.mainClass=com.microsoft.playwright.CLI -Dexec.args="install --with-deps chromium" exec:java
+      - name: Install Playwright browsers
+        run: mvn -B -Dexec.classpathScope=test -Dexec.mainClass=com.microsoft.playwright.CLI -Dexec.args="install --with-deps chromium firefox webkit" exec:java
 
-      - name: Run tests
-        run: mvn -B test
+      - name: Run cross-browser and mobile suite
+        run: mvn -B test -Dtestng.suite=testng-cross-browser.xml
